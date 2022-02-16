@@ -54,7 +54,7 @@
  `I do believe in:`
  <br>
  <b>
-    "Miracles and hopes"🥴❤️�
+    "Miracles and hopes"🥴❤️
 </b>
 
 ### Music Playing 🎧
