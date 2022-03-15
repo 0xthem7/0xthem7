@@ -28,7 +28,7 @@
 - <img alt="GIF" src="https://github.com/SatYu26/SatYu26/blob/master/Assets/coin.gif" width="20vw" /> **Fun fact:** My *smartness* 💡 lies in my *laziness* 😴
 - <img alt="GIF" src="https://github.com/SatYu26/SatYu26/blob/master/Assets/Medal.gif" width="20vw" /> Have a look at my Repos💡 & do Leave a **STAR**⭐️ if you like my work👨‍💻.
 
-<a href="https://ibb.co/7bzDNYB"><img src="https://i.ibb.co/DLbFgVm/1308552925-Anonymous-Guy-Fawkes-Hackers-Fresh-New-Hd-Wfghfghfghfallpaper-1.jpg" alt="1308552925-Anonymous-Guy-Fawkes-Hackers-Fresh-New-Hd-Wfghfghfghfallpaper-1" border="0"></a><br>
+<a href="https://ibb.co/F5VXPMb"><img src="https://i.ibb.co/m980xwC/274365650-146676111141567-8664490968075367776-n.jpg" alt="274365650-146676111141567-8664490968075367776-n" border="0"></a><br>
 **My motivational Quotes** : ✍️
 
 <i>“Somebody told me I’m a failure, I’ll prove them wrong.”
