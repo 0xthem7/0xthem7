@@ -63,5 +63,5 @@
 
 ## ⭐️ From https://github.com/m7-Selenophile/
 
-## Social Sites: https://www.facebook.com/m7.selinophile/
+## Social Sites: https://twitter.com/selenophile__m7
                   
