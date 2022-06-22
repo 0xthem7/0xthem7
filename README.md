@@ -24,7 +24,7 @@
 - <img alt="GIF" src="https://github.com/SatYu26/SatYu26/blob/master/Assets/coin.gif" width="30" /> **Fun fact:** My *smartness* 💡 lies in my *laziness* 😴
 - <img alt="GIF" src="https://github.com/SatYu26/SatYu26/blob/master/Assets/Medal.gif" width="30" /> Have a look at my Repos💡 & do Leave a **STAR**⭐️ if you like my work👨‍💻.
 
-<a href="https://www.facebook.com/profile.php?id=100079638482768"><img src="https://i.ibb.co/m980xwC/274365650-146676111141567-8664490968075367776-n.jpg" alt="274365650-146676111141567-8664490968075367776-n" border="0"></a><br>
+<a href="https://www.facebook.com/profile.php?id=100079638482768"><img src="https://i.ibb.co/3h3KQtQ/IMG20220605192716.jpg" alt="274365650-146676111141567-8664490968075367776-n" width=500 border="0"></a><br>
 **My motivational Quotes** : ✍️
 
 <i>“Somebody told me I’m a failure, I’ll prove them wrong.”
