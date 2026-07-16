@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HTTP to Fetch / Curl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #000000;
+    --panel: #050506;
+    --line: #17181D;
+    --text: #E7E9F5;
+    --dim: #5B5E68;
+    --dimmer: #34363D;
+    --ink: #3D4CFF;
+    --accent: #39D67A;
+    --amber: #F0C94A;
+    --red: #FF4D63;
+    --cyan: #57E2DC;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .bar{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:10px 14px;
+    border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+  }
+  .bar > .div{
+    width:1px;
+    align-self:stretch;
+    background:var(--line);
+  }
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:22px;
+    height:18px;
+    border:1px solid var(--red);
+    border-radius:3px;
+    color:var(--red);
+    font-weight:700;
+    font-size:12px;
+    margin-right:8px;
+    flex-shrink:0;
+  }
+  .mark{
+    display:flex;
+    align-items:center;
+    font-weight:600;
+    font-size:13px;
+    color:var(--ink);
+    letter-spacing:-0.01em;
+    margin-right:auto;
+  }
+  .mark span{ color:var(--dim); }
+
+  .tabs{
+    display:flex;
+    border:1px solid var(--line);
+    border-radius:5px;
+    overflow:hidden;
+  }
+  .tabs button{
+    background:transparent;
+    border:none;
+    color:var(--dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    padding:6px 12px;
+    cursor:pointer;
+  }
+  .tabs button + button{ border-left:1px solid var(--line); }
+  .tabs button.active{ background:var(--accent); color:#08170A; font-weight:700; }
+
+  label.switch-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--dim);
+    font-size:12px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .sw{
+    position:relative;
+    width:30px;
+    height:17px;
+    flex-shrink:0;
+  }
+  .sw input{ opacity:0; width:0; height:0; position:absolute; }
+  .sw .trk{
+    position:absolute; inset:0;
+    background:#1B1D23;
+    border:1px solid var(--line);
+    border-radius:999px;
+    transition:.12s;
+  }
+  .sw .trk::before{
+    content:"";
+    position:absolute;
+    height:11px; width:11px;
+    left:2px; top:2px;
+    background:var(--dimmer);
+    border-radius:50%;
+    transition:.12s;
+  }
+  .sw input:checked + .trk{ border-color:var(--amber); background:rgba(232,169,76,0.1); }
+  .sw input:checked + .trk::before{ transform:translateX(13px); background:var(--amber); }
+
+  button.go{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    font-weight:700;
+    background:var(--accent);
+    color:#08170A;
+    border:none;
+    border-radius:6px;
+    padding:7px 14px;
+    cursor:pointer;
+  }
+  button.go:hover{ filter:brightness(1.06); }
+
+  main{
+    flex:1;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    min-height:0;
+  }
+  @media (max-width: 860px){ main{ grid-template-columns:1fr; } }
+
+  .col{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+  }
+  .col + .col{ border-left:1px solid var(--line); }
+  @media (max-width: 860px){ .col + .col{ border-left:none; border-top:1px solid var(--line); } }
+
+  .col-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:8px 14px;
+    color:var(--dimmer);
+    font-size:11px;
+    letter-spacing:0.06em;
+    border-bottom:1px solid var(--line);
+  }
+  .col-head button.copy{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:5px;
+    cursor:pointer;
+  }
+  .col-head button.copy.on{ color:var(--accent); border-color:var(--accent); }
+
+  textarea{
+    flex:1;
+    min-height:0;
+    background:transparent;
+    border:none;
+    outline:none;
+    resize:none;
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    line-height:1.6;
+    padding:14px;
+  }
+  textarea::placeholder{ color:var(--dimmer); }
+
+  .strip{
+    display:flex;
+    border-bottom:1px solid var(--line);
+    font-size:11px;
+    color:var(--dim);
+  }
+  .strip span{
+    padding:8px 12px;
+    border-right:1px solid var(--line);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .strip span:last-child{ border-right:none; flex:1; }
+  .badge{
+    font-weight:700;
+    font-size:10px;
+    padding:1px 6px;
+    border-radius:4px;
+  }
+  .b-GET{ background:rgba(57,214,122,0.12); color:var(--accent); }
+  .b-POST{ background:rgba(240,201,74,0.12); color:var(--amber); }
+  .b-PUT{ background:rgba(87,226,220,0.12); color:var(--cyan); }
+  .b-PATCH{ background:rgba(61,76,255,0.14); color:var(--ink); }
+  .b-DELETE{ background:rgba(255,77,99,0.12); color:var(--red); }
+  .b-DEFAULT{ background:rgba(91,94,104,0.14); color:var(--dim); }
+
+  pre{
+    margin:0;
+    flex:1;
+    min-height:0;
+    overflow:auto;
+    padding:14px;
+    line-height:1.65;
+    white-space:pre;
+    outline:none;
+    cursor:text;
+  }
+  pre:focus{ background:rgba(255,255,255,0.012); }
+  pre.empty{ color:var(--dimmer); }
+  .tok-kw{ color:var(--ink); }
+  .tok-str{ color:var(--cyan); }
+  .tok-key{ color:var(--amber); }
+  .tok-punc{ color:var(--dim); }
+  .tok-com{ color:var(--dimmer); }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <span class="mark"><span class="chip">ƒ</span>fetch<span>()</span></span>
+  <div class="div"></div>
+  <label class="switch-row">
+    <span class="sw"><input type="checkbox" id="cookieToggle"><span class="trk"></span></span>
+    cookie
+  </label>
+  <div class="div"></div>
+  <button class="go" id="genBtn">generate</button>
+</div>
+
+<main>
+  <div class="col">
+    <div class="col-head"><span>raw request</span><span></span></div>
+    <textarea id="rawInput" spellcheck="false" placeholder="GET /path HTTP/1.1
+Host: example.com
+Authorization: Bearer xyz"></textarea>
+  </div>
+  <div class="col">
+    <div class="strip" id="strip" style="display:none;">
+      <span id="cMethod"></span>
+      <span id="cUrl"></span>
+      <span id="cHeaders"></span>
+    </div>
+    <div class="col-head">
+      <div class="tabs">
+        <button id="outFetch" class="active">fetch</button>
+        <button id="outCurl">curl</button>
+      </div>
+      <button class="copy" id="copyBtn">copy</button>
+    </div>
+    <pre id="output" class="empty" contenteditable="true" spellcheck="false">—</pre>
+  </div>
+</main>
+
+<script>
+const rawInput   = document.getElementById('rawInput');
+const genBtn     = document.getElementById('genBtn');
+const cookieToggle = document.getElementById('cookieToggle');
+const output     = document.getElementById('output');
+const copyBtn    = document.getElementById('copyBtn');
+const strip      = document.getElementById('strip');
+const outFetch   = document.getElementById('outFetch');
+const outCurl    = document.getElementById('outCurl');
+
+let outFormat = 'fetch';
+
+outFetch.addEventListener('click', () => setFormat('fetch'));
+outCurl.addEventListener('click', () => setFormat('curl'));
+
+function setFormat(f){
+  outFormat = f;
+  outFetch.classList.toggle('active', f === 'fetch');
+  outCurl.classList.toggle('active', f === 'curl');
+  generate();
+}
+
+// exact fetch-spec forbidden request headers (cookie handled separately via toggle)
+const FORBIDDEN_EXACT = new Set([
+  'accept-charset','accept-encoding','access-control-request-headers',
+  'access-control-request-method','connection','content-length','cookie2',
+  'date','dnt','expect','host','keep-alive','origin','referer',
+  'set-cookie','set-cookie2','te','trailer','transfer-encoding','upgrade','via',
+  ':authority',':method',':path',':scheme',':status'
+]);
+function isForbidden(name){
+  const lk = name.toLowerCase();
+  if(FORBIDDEN_EXACT.has(lk)) return true;
+  if(lk.startsWith('proxy-')) return true;
+  if(lk.startsWith('sec-')) return true;
+  return false;
+}
+
+function parseRawHttp(raw){
+  const normalized = raw.replace(/\r\n/g, '\n').replace(/^\uFEFF/, '');
+  const lines = normalized.split('\n');
+  let idx = 0;
+  while(idx < lines.length && lines[idx].trim() === '') idx++;
+  const requestLine = (lines[idx] || '').trim();
+  const parts = requestLine.split(/\s+/);
+  const method = (parts[0] || 'GET').toUpperCase();
+  const path = parts[1] || '/';
+
+  idx++;
+  const headers = [];
+  let host = '';
+  for(; idx < lines.length; idx++){
+    const line = lines[idx];
+    if(line.trim() === ''){ idx++; break; }
+    const sep = line.indexOf(':');
+    if(sep === -1) continue;
+    const key = line.slice(0, sep).trim();
+    const value = line.slice(sep+1).trim();
+    if(key.toLowerCase() === 'host') host = value;
+    headers.push([key, value]);
+  }
+  const body = lines.slice(idx).join('\n').trim();
+
+  let url = path;
+  if(!/^https?:\/\//i.test(path)){
+    url = (host ? 'https://' + host : '') + (path.startsWith('/') ? path : '/' + path);
+  }
+  return { method, url, headers, body };
+}
+
+function esc(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function methodClass(m){
+  return ['GET','POST','PUT','PATCH','DELETE'].includes(m) ? 'b-' + m : 'b-DEFAULT';
+}
+
+function filterHeaders(headers, includeCookie, literalCookie){
+  const filtered = [];
+  let hadCookie = false;
+  headers.forEach(([k,v]) => {
+    if(k.toLowerCase() === 'cookie'){
+      hadCookie = true;
+      if(includeCookie && literalCookie) filtered.push([k,v]);
+      return;
+    }
+    if(isForbidden(k)) return;
+    filtered.push([k,v]);
+  });
+  return { filtered, hadCookie };
+}
+
+function render(parsed, includeCookie){
+  const { method, url, headers, body } = parsed;
+  const { filtered, hadCookie } = filterHeaders(headers, includeCookie, false);
+
+  const hasBody = !!body && method !== 'GET' && method !== 'HEAD';
+  let bodyBlock = '', bodyIsJson = false;
+  if(hasBody){
+    try{
+      const parsedJson = JSON.parse(body);
+      bodyBlock = JSON.stringify(parsedJson, null, 2).split('\n').map((l,i)=> i===0 ? l : '  ' + l).join('\n');
+      bodyIsJson = true;
+    }catch(e){
+      bodyBlock = JSON.stringify(body);
+    }
+  }
+  const useCredentials = hadCookie && includeCookie;
+
+  let html = '';
+  html += `<span class="tok-kw">fetch</span><span class="tok-punc">(</span><span class="tok-str">${esc(JSON.stringify(url))}</span><span class="tok-punc">, {</span>\n`;
+  html += `  <span class="tok-key">method</span><span class="tok-punc">:</span> <span class="tok-str">${esc(JSON.stringify(method))}</span><span class="tok-punc">,</span>\n`;
+  html += `  <span class="tok-key">headers</span><span class="tok-punc">: {</span>\n`;
+  filtered.forEach(([k,v], i) => {
+    const comma = i < filtered.length - 1 ? ',' : '';
+    html += `    <span class="tok-str">${esc(JSON.stringify(k))}</span><span class="tok-punc">:</span> <span class="tok-str">${esc(JSON.stringify(v))}</span><span class="tok-punc">${comma}</span>\n`;
+  });
+  html += `  <span class="tok-punc">}</span><span class="tok-punc">${(useCredentials || hasBody) ? ',' : ''}</span>\n`;
+
+  if(useCredentials){
+    html += `  <span class="tok-key">credentials</span><span class="tok-punc">:</span> <span class="tok-str">"include"</span><span class="tok-punc">${hasBody ? ',' : ''}</span>\n`;
+  }
+
+  if(hasBody){
+    if(bodyIsJson){
+      html += `  <span class="tok-key">body</span><span class="tok-punc">:</span> <span class="tok-kw">JSON.stringify</span><span class="tok-punc">(</span>${esc(bodyBlock)}<span class="tok-punc">)</span>\n`;
+    } else {
+      html += `  <span class="tok-key">body</span><span class="tok-punc">:</span> <span class="tok-str">${esc(bodyBlock)}</span>\n`;
+    }
+  }
+  html += `<span class="tok-punc">});</span>`;
+
+  return { html, method, url, filtered };
+}
+
+function renderCurl(parsed, includeCookie){
+  const { method, url, headers, body } = parsed;
+  const { filtered } = filterHeaders(headers, includeCookie, true);
+  const hasBody = !!body && method !== 'GET' && method !== 'HEAD';
+
+  let html = `<span class="tok-kw">curl</span> <span class="tok-str">${esc("'" + url + "'")}</span>`;
+  if(method !== 'GET'){
+    html += ` \\\n  <span class="tok-punc">-X</span> <span class="tok-str">${esc(method)}</span>`;
+  }
+  filtered.forEach(([k,v]) => {
+    html += ` \\\n  <span class="tok-punc">-H</span> <span class="tok-str">${esc("'" + k + ': ' + v + "'")}</span>`;
+  });
+  if(hasBody){
+    html += ` \\\n  <span class="tok-punc">--data-raw</span> <span class="tok-str">${esc("'" + body.replace(/'/g, "'\\''") + "'")}</span>`;
+  }
+
+  return { html, method, url, filtered };
+}
+
+function generate(){
+  const raw = rawInput.value;
+  if(!raw.trim()){
+    output.className = 'empty';
+    output.textContent = '—';
+    strip.style.display = 'none';
+    return;
+  }
+  const parsed = parseRawHttp(raw);
+  const result = outFormat === 'fetch'
+    ? render(parsed, cookieToggle.checked)
+    : renderCurl(parsed, cookieToggle.checked);
+
+  document.getElementById('cMethod').innerHTML = `<span class="badge ${methodClass(result.method)}">${result.method}</span>`;
+  document.getElementById('cUrl').textContent = result.url || '(no url)';
+  document.getElementById('cHeaders').textContent = result.filtered.length + ' hdr';
+  strip.style.display = 'flex';
+
+  output.className = '';
+  output.innerHTML = result.html;
+}
+
+genBtn.addEventListener('click', generate);
+cookieToggle.addEventListener('change', generate);
+
+copyBtn.addEventListener('click', () => {
+  const text = output.innerText;
+  if(!text || text === '—') return;
+  navigator.clipboard.writeText(text).then(() => {
+    copyBtn.textContent = 'copied';
+    copyBtn.classList.add('on');
+    setTimeout(() => { copyBtn.textContent = 'copy'; copyBtn.classList.remove('on'); }, 1200);
+  });
+});
+</script>
+</body>
+</html>
