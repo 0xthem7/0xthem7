@@ -9,17 +9,18 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #000000;
-    --panel: #050506;
-    --line: #17181D;
-    --text: #E7E9F5;
-    --dim: #5B5E68;
-    --dimmer: #34363D;
-    --ink: #3D4CFF;
-    --accent: #39D67A;
-    --amber: #F0C94A;
-    --red: #FF4D63;
-    --cyan: #57E2DC;
+    /* Lightened + higher-contrast palette for readability */
+    --bg: #0B0C10;
+    --panel: #101116;
+    --line: #262832;
+    --text: #F5F6FA;
+    --dim: #9AA0AE;
+    --dimmer: #565A66;
+    --ink: #7C8CFF;
+    --accent: #4CE28C;
+    --amber: #F5D06B;
+    --red: #FF6B7F;
+    --cyan: #7CEEE8;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -28,7 +29,7 @@
     background:var(--bg);
     color:var(--text);
     font-family:'JetBrains Mono',monospace;
-    font-size:13px;
+    font-size:13.5px;
     display:flex;
     flex-direction:column;
   }
@@ -63,8 +64,8 @@
   .mark{
     display:flex;
     align-items:center;
-    font-weight:600;
-    font-size:13px;
+    font-weight:700;
+    font-size:13.5px;
     color:var(--ink);
     letter-spacing:-0.01em;
     margin-right:auto;
@@ -83,6 +84,7 @@
     color:var(--dim);
     font-family:'JetBrains Mono',monospace;
     font-size:12px;
+    font-weight:600;
     padding:6px 12px;
     cursor:pointer;
   }
@@ -95,6 +97,7 @@
     gap:8px;
     color:var(--dim);
     font-size:12px;
+    font-weight:600;
     cursor:pointer;
     user-select:none;
   }
@@ -107,7 +110,7 @@
   .sw input{ opacity:0; width:0; height:0; position:absolute; }
   .sw .trk{
     position:absolute; inset:0;
-    background:#1B1D23;
+    background:#1F2129;
     border:1px solid var(--line);
     border-radius:999px;
     transition:.12s;
@@ -121,7 +124,7 @@
     border-radius:50%;
     transition:.12s;
   }
-  .sw input:checked + .trk{ border-color:var(--amber); background:rgba(232,169,76,0.1); }
+  .sw input:checked + .trk{ border-color:var(--amber); background:rgba(245,208,107,0.12); }
   .sw input:checked + .trk::before{ transform:translateX(13px); background:var(--amber); }
 
   button.go{
@@ -139,27 +142,55 @@
 
   main{
     flex:1;
-    display:grid;
-    grid-template-columns:1fr 1fr;
+    display:flex;
     min-height:0;
   }
-  @media (max-width: 860px){ main{ grid-template-columns:1fr; } }
+  @media (max-width: 860px){ main{ flex-direction:column; } }
 
   .col{
     display:flex;
     flex-direction:column;
     min-height:0;
+    min-width:0;
   }
-  .col + .col{ border-left:1px solid var(--line); }
-  @media (max-width: 860px){ .col + .col{ border-left:none; border-top:1px solid var(--line); } }
+  #leftCol{ flex:1 1 50%; }
+  #rightCol{ flex:1 1 50%; }
+  @media (max-width: 860px){
+    #leftCol, #rightCol{ flex:1 1 auto !important; }
+  }
+
+  /* Draggable divider between the two columns */
+  .resizer{
+    width:6px;
+    flex:0 0 6px;
+    background:var(--line);
+    cursor:col-resize;
+    position:relative;
+  }
+  .resizer::after{
+    content:"";
+    position:absolute;
+    top:50%; left:50%;
+    width:2px; height:28px;
+    background:var(--dim);
+    border-radius:2px;
+    transform:translate(-50%,-50%);
+  }
+  .resizer:hover, .resizer.dragging{ background:var(--ink); }
+  .resizer:hover::after, .resizer.dragging::after{ background:var(--bg); }
+  @media (max-width: 860px){
+    .resizer{ width:100%; height:6px; flex:0 0 6px; cursor:row-resize; }
+    .resizer::after{ width:28px; height:2px; }
+  }
 
   .col-head{
     display:flex;
     align-items:center;
     justify-content:space-between;
     padding:8px 14px;
-    color:var(--dimmer);
+    color:var(--dim);
     font-size:11px;
+    font-weight:600;
     letter-spacing:0.06em;
     border-bottom:1px solid var(--line);
   }
@@ -169,6 +200,7 @@
     color:var(--dim);
     font-family:'JetBrains Mono',monospace;
     font-size:11px;
+    font-weight:600;
     padding:3px 9px;
     border-radius:5px;
     cursor:pointer;
@@ -184,17 +216,18 @@
     resize:none;
     color:var(--text);
     font-family:'JetBrains Mono',monospace;
-    font-size:13px;
-    line-height:1.6;
+    font-size:13.5px;
+    line-height:1.7;
     padding:14px;
   }
-  textarea::placeholder{ color:var(--dimmer); }
+  textarea::placeholder{ color:var(--dim); }
 
   .strip{
     display:flex;
     border-bottom:1px solid var(--line);
     font-size:11px;
     color:var(--dim);
+    font-weight:600;
   }
   .strip span{
     padding:8px 12px;
@@ -210,12 +243,12 @@
     padding:1px 6px;
     border-radius:4px;
   }
-  .b-GET{ background:rgba(57,214,122,0.12); color:var(--accent); }
-  .b-POST{ background:rgba(240,201,74,0.12); color:var(--amber); }
-  .b-PUT{ background:rgba(87,226,220,0.12); color:var(--cyan); }
-  .b-PATCH{ background:rgba(61,76,255,0.14); color:var(--ink); }
-  .b-DELETE{ background:rgba(255,77,99,0.12); color:var(--red); }
-  .b-DEFAULT{ background:rgba(91,94,104,0.14); color:var(--dim); }
+  .b-GET{ background:rgba(76,226,140,0.16); color:var(--accent); }
+  .b-POST{ background:rgba(245,208,107,0.16); color:var(--amber); }
+  .b-PUT{ background:rgba(124,238,232,0.16); color:var(--cyan); }
+  .b-PATCH{ background:rgba(124,140,255,0.18); color:var(--ink); }
+  .b-DELETE{ background:rgba(255,107,127,0.16); color:var(--red); }
+  .b-DEFAULT{ background:rgba(154,160,174,0.16); color:var(--dim); }
 
   pre{
     margin:0;
@@ -223,14 +256,14 @@
     min-height:0;
     overflow:auto;
     padding:14px;
-    line-height:1.65;
+    line-height:1.7;
     white-space:pre;
     outline:none;
     cursor:text;
   }
-  pre:focus{ background:rgba(255,255,255,0.012); }
-  pre.empty{ color:var(--dimmer); }
-  .tok-kw{ color:var(--ink); }
+  pre:focus{ background:rgba(255,255,255,0.02); }
+  pre.empty{ color:var(--dim); }
+  .tok-kw{ color:var(--ink); font-weight:600; }
   .tok-str{ color:var(--cyan); }
   .tok-key{ color:var(--amber); }
   .tok-punc{ color:var(--dim); }
@@ -251,13 +284,16 @@
 </div>
 
 <main>
-  <div class="col">
+  <div class="col" id="leftCol">
     <div class="col-head"><span>raw request</span><span></span></div>
     <textarea id="rawInput" spellcheck="false" placeholder="GET /path HTTP/1.1
 Host: example.com
 Authorization: Bearer xyz"></textarea>
   </div>
-  <div class="col">
+
+  <div class="resizer" id="resizer"></div>
+
+  <div class="col" id="rightCol">
     <div class="strip" id="strip" style="display:none;">
       <span id="cMethod"></span>
       <span id="cUrl"></span>
@@ -435,6 +471,7 @@ function generate(){
     output.className = 'empty';
     output.textContent = '—';
     strip.style.display = 'none';
+    console.log('[http-to-fetch] no input, nothing generated');
     return;
   }
   const parsed = parseRawHttp(raw);
@@ -449,6 +486,10 @@ function generate(){
 
   output.className = '';
   output.innerHTML = result.html;
+
+  // Log the generated output + a plain-text version for easy inspection/debugging
+  console.log('[http-to-fetch] parsed request:', parsed);
+  console.log('[http-to-fetch] generated ' + outFormat + ':\n' + output.innerText);
 }
 
 genBtn.addEventListener('click', generate);
@@ -460,9 +501,60 @@ copyBtn.addEventListener('click', () => {
   navigator.clipboard.writeText(text).then(() => {
     copyBtn.textContent = 'copied';
     copyBtn.classList.add('on');
+    console.log('[http-to-fetch] copied output to clipboard');
     setTimeout(() => { copyBtn.textContent = 'copy'; copyBtn.classList.remove('on'); }, 1200);
   });
 });
+
+// ---- Draggable divider (left/right resizable panes) ----
+(function(){
+  const resizer = document.getElementById('resizer');
+  const leftCol = document.getElementById('leftCol');
+  const rightCol = document.getElementById('rightCol');
+  const main = document.querySelector('main');
+  let dragging = false;
+
+  function isStacked(){
+    return window.matchMedia('(max-width: 860px)').matches;
+  }
+
+  function onPointerMove(e){
+    if(!dragging) return;
+    const rect = main.getBoundingClientRect();
+    if(isStacked()){
+      const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+      const pct = Math.min(80, Math.max(20, (y / rect.height) * 100));
+      leftCol.style.flex = `0 0 ${pct}%`;
+      rightCol.style.flex = `1 1 auto`;
+    } else {
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+      const pct = Math.min(80, Math.max(20, (x / rect.width) * 100));
+      leftCol.style.flex = `0 0 ${pct}%`;
+      rightCol.style.flex = `1 1 auto`;
+    }
+  }
+
+  function stopDrag(){
+    dragging = false;
+    resizer.classList.remove('dragging');
+    document.body.style.userSelect = '';
+  }
+
+  resizer.addEventListener('mousedown', () => {
+    dragging = true;
+    resizer.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+  });
+  resizer.addEventListener('touchstart', () => {
+    dragging = true;
+    resizer.classList.add('dragging');
+  }, { passive: true });
+
+  window.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('touchmove', onPointerMove, { passive: true });
+  window.addEventListener('mouseup', stopDrag);
+  window.addEventListener('touchend', stopDrag);
+})();
 </script>
 </body>
 </html>
