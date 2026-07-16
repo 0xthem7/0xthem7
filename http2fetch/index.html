@@ -53,14 +53,12 @@
     justify-content:center;
     width:22px;
     height:18px;
-    border:1px solid var(--red);
-    border-radius:3px;
-    color:var(--red);
-    font-weight:700;
-    font-size:12px;
-    margin-right:8px;
+    background:var(--accent);
+    border-radius:4px;
     flex-shrink:0;
+    margin-right:8px;
   }
+  .chip svg{ width:13px; height:13px; display:block; }
   .mark{
     display:flex;
     align-items:center;
@@ -273,7 +271,7 @@
 <body>
 
 <div class="bar">
-  <span class="mark"><span class="chip">ƒ</span>fetch<span>()</span></span>
+  <span class="mark"><span class="chip"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6L10 12L4 18" stroke="#08170A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 18H20" stroke="#08170A" stroke-width="2.6" stroke-linecap="round"/></svg></span>req<span>craft</span></span>
   <div class="div"></div>
   <label class="switch-row">
     <span class="sw"><input type="checkbox" id="cookieToggle"><span class="trk"></span></span>
@@ -304,9 +302,13 @@ Authorization: Bearer xyz"></textarea>
         <button id="outFetch" class="active">fetch</button>
         <button id="outCurl">curl</button>
       </div>
-      <button class="copy" id="copyBtn">copy</button>
+      <div style="display:flex; gap:6px;">
+        <button class="copy" id="runBtn" title="Actually execute this request and log the response to the console">run</button>
+        <button class="copy" id="copyBtn">copy</button>
+      </div>
     </div>
     <pre id="output" class="empty" contenteditable="true" spellcheck="false">—</pre>
+    <div class="strip" id="runStrip" style="display:none;"></div>
   </div>
 </main>
 
@@ -505,6 +507,73 @@ copyBtn.addEventListener('click', () => {
     setTimeout(() => { copyBtn.textContent = 'copy'; copyBtn.classList.remove('on'); }, 1200);
   });
 });
+
+// ---- Actually execute the generated request and log the real response ----
+const runBtn = document.getElementById('runBtn');
+const runStrip = document.getElementById('runStrip');
+
+function setRunStrip(html){
+  runStrip.style.display = 'flex';
+  runStrip.innerHTML = html;
+}
+
+async function runRequest(){
+  const raw = rawInput.value;
+  if(!raw.trim()){
+    console.log('[http-to-fetch] run: nothing to send, input is empty');
+    return;
+  }
+  const parsed = parseRawHttp(raw);
+  const { filtered, hadCookie } = filterHeaders(parsed.headers, cookieToggle.checked, false);
+  const useCredentials = hadCookie && cookieToggle.checked;
+  const hasBody = !!parsed.body && parsed.method !== 'GET' && parsed.method !== 'HEAD';
+
+  const fetchOptions = {
+    method: parsed.method,
+    headers: Object.fromEntries(filtered)
+  };
+  if(useCredentials) fetchOptions.credentials = 'include';
+  if(hasBody) fetchOptions.body = parsed.body;
+
+  runBtn.textContent = 'running…';
+  runBtn.disabled = true;
+  setRunStrip(`<span>sending ${esc(parsed.method)} ${esc(parsed.url)}…</span>`);
+  console.log('[http-to-fetch] run: sending request', { url: parsed.url, ...fetchOptions });
+
+  const startedAt = performance.now();
+  try{
+    const res = await fetch(parsed.url, fetchOptions);
+    const elapsedMs = Math.round(performance.now() - startedAt);
+
+    const responseHeaders = {};
+    res.headers.forEach((v, k) => { responseHeaders[k] = v; });
+
+    const contentType = res.headers.get('content-type') || '';
+    let responseBody;
+    if(contentType.includes('application/json')){
+      try{ responseBody = await res.json(); }
+      catch(e){ responseBody = await res.text(); }
+    } else {
+      responseBody = await res.text();
+    }
+
+    console.log('[http-to-fetch] run: response status', res.status, res.statusText, `(${elapsedMs}ms)`);
+    console.log('[http-to-fetch] run: response headers', responseHeaders);
+    console.log('[http-to-fetch] run: response body', responseBody);
+
+    const badgeClass = res.ok ? 'b-GET' : 'b-DELETE';
+    setRunStrip(`<span class="badge ${badgeClass}">${res.status}</span><span>${esc(res.statusText || '')}</span><span>${elapsedMs}ms</span><span>see console for full response</span>`);
+  } catch(err){
+    const elapsedMs = Math.round(performance.now() - startedAt);
+    console.error('[http-to-fetch] run: request failed', err);
+    setRunStrip(`<span class="badge b-DELETE">error</span><span>${esc(err.message || String(err))}</span><span>${elapsedMs}ms</span><span>likely CORS or network — see console</span>`);
+  } finally {
+    runBtn.textContent = 'run';
+    runBtn.disabled = false;
+  }
+}
+
+runBtn.addEventListener('click', runRequest);
 
 // ---- Draggable divider (left/right resizable panes) ----
 (function(){
