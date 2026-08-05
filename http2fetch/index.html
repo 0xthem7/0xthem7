@@ -21,6 +21,7 @@
     --amber: #F5D06B;
     --red: #FF6B7F;
     --cyan: #7CEEE8;
+    --violet: #C792EA;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -246,6 +247,8 @@
   .b-PUT{ background:rgba(124,238,232,0.16); color:var(--cyan); }
   .b-PATCH{ background:rgba(124,140,255,0.18); color:var(--ink); }
   .b-DELETE{ background:rgba(255,107,127,0.16); color:var(--red); }
+  .b-OPTIONS{ background:rgba(199,146,234,0.16); color:var(--violet); }
+  .b-HEAD{ background:rgba(154,160,174,0.16); color:var(--dim); }
   .b-DEFAULT{ background:rgba(154,160,174,0.16); color:var(--dim); }
 
   pre{
@@ -346,6 +349,9 @@ function isForbidden(name){
   return false;
 }
 
+// Methods that never carry a request body when translated to fetch/curl
+const BODYLESS_METHODS = new Set(['GET','HEAD']);
+
 function parseRawHttp(raw){
   const normalized = raw.replace(/\r\n/g, '\n').replace(/^\uFEFF/, '');
   const lines = normalized.split('\n');
@@ -372,7 +378,11 @@ function parseRawHttp(raw){
   const body = lines.slice(idx).join('\n').trim();
 
   let url = path;
-  if(!/^https?:\/\//i.test(path)){
+  if(method === 'OPTIONS' && path === '*'){
+    // Asterisk-form (server-wide OPTIONS, e.g. "OPTIONS * HTTP/1.1") has no
+    // resource path - target the host root instead of literally appending "*".
+    url = host ? 'https://' + host + '/' : '';
+  } else if(!/^https?:\/\//i.test(path)){
     url = (host ? 'https://' + host : '') + (path.startsWith('/') ? path : '/' + path);
   }
   return { method, url, headers, body };
@@ -383,7 +393,7 @@ function esc(s){
 }
 
 function methodClass(m){
-  return ['GET','POST','PUT','PATCH','DELETE'].includes(m) ? 'b-' + m : 'b-DEFAULT';
+  return ['GET','POST','PUT','PATCH','DELETE','OPTIONS','HEAD'].includes(m) ? 'b-' + m : 'b-DEFAULT';
 }
 
 function filterHeaders(headers, includeCookie, literalCookie){
@@ -405,7 +415,7 @@ function render(parsed, includeCookie){
   const { method, url, headers, body } = parsed;
   const { filtered, hadCookie } = filterHeaders(headers, includeCookie, false);
 
-  const hasBody = !!body && method !== 'GET' && method !== 'HEAD';
+  const hasBody = !!body && !BODYLESS_METHODS.has(method);
   let bodyBlock = '', bodyIsJson = false;
   if(hasBody){
     try{
@@ -452,7 +462,7 @@ function render(parsed, includeCookie){
 function renderCurl(parsed, includeCookie){
   const { method, url, headers, body } = parsed;
   const { filtered } = filterHeaders(headers, includeCookie, true);
-  const hasBody = !!body && method !== 'GET' && method !== 'HEAD';
+  const hasBody = !!body && !BODYLESS_METHODS.has(method);
 
   let html = `<span class="tok-kw">curl</span> <span class="tok-str">${esc("'" + url + "'")}</span>`;
   if(method !== 'GET'){
